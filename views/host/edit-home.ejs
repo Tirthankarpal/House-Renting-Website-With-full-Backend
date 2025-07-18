@@ -1,0 +1,48 @@
+<%-include('../partials/head')%>
+<body>
+  <%-include('../partials/nav')%>
+  <main class="container mx-auto mt-8 p-8 bg-white rounded-lg shadow-md">
+      <h1 class="text-3xl font-bold mb-6 text-center text-gray-800"><%=editing?'Edit':'Add'%> Your Home on AirBnB</h1>
+      <form action="/host/<%=editing?'edit-home':'add-home' %>" method="POST" class="max-w-md mx-auto">
+        <input type="hidden" name="_id" value="<%=editing?home._id:'' %>" class="w-full px-4 py-2 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500" />
+        <input
+          type="text"
+          name="houseName"
+          value="<%=editing?home.houseName:'' %>"
+          placeholder="Enter your House Name"
+          class="w-full px-4 py-2 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"/>
+        <input
+          type="text"
+          name="Price"
+          placeholder="Enter your House rent per night"
+          value="<%=editing?home.Price:'' %>"
+          class="w-full px-4 py-2 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"/>
+        <input
+          type="text"
+          name="Location"
+          placeholder="Enter your House Location"
+          value="<%=editing?home.Location:'' %>"
+          class="w-full px-4 py-2 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"/>
+        <input
+          type="text"
+          name="Rating"
+          placeholder="Enter your House rating"
+          value="<%=editing?home.Rating:'' %>"
+          class="w-full px-4 py-2 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"/>
+        <input
+          type="text"
+          name="PhotoUrl"
+          placeholder="Enter Photo url"
+          value="<%=editing?home.PhotoUrl:'' %>"
+          class="w-full px-4 py-2 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"/>
+        <input
+          type="text"
+          name="Description"
+          placeholder="Enter your House Description"
+          value="<%=editing?home.Description:'' %>"
+          class="w-full px-4 py-2 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"/>
+        <input type="submit" value="<%=editing?'Update Home':'Add Home'%>" class="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition duration-300" />
+      </form>
+    </main>
+</body>
+</html>
