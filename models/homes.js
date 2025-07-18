@@ -17,7 +17,11 @@ const homeSchema = mongoose.Schema({
     required: true
   },
   PhotoUrl:String,
-  Description:String
+  Description:String,
+  reviews:[{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Review'
+  }]
 });
 // homeSchema.pre('findOneAndDelete',async function(next) {
 //   const homeId=this.getQuery()._id;

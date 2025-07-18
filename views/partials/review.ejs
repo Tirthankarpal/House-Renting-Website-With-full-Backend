@@ -1,0 +1,35 @@
+<h3 class="text-xl font-bold">Guest Comments</h3>
+
+<div class="space-y-3 max-h-80 overflow-y-auto">
+  <% if (home.reviews && home.reviews.length > 0) { %>
+    <% home.reviews.forEach(r => { %>
+      <div class="border-b pb-2">
+        <p><strong><%= r.username %>:</strong> <%= r.comment %></p>
+        <p class="text-xs text-gray-400"><%= new Date(r.createdAt).toDateString() %></p>
+
+        <!-- Show delete button only for review owner -->
+        <% if (user && r.user && user._id.toString() === r.user._id.toString()) { %>
+          <form action="/homes/<%= home._id %>/review/<%= r._id %>/delete" method="POST" class="mt-1">
+            <button class="text-red-500 text-xs hover:underline">Delete</button>
+          </form>
+        <% } %>
+      </div>
+    <% }) %>
+  <% } else { %>
+    <p class="text-gray-500 italic">No comments yet.</p>
+  <% } %>
+</div>
+
+<!-- Only guest users can comment -->
+<% if (user && user.userType === 'guest') { %>
+  <form action="/homes/<%= home._id %>/review" method="POST" class="mt-4">
+    <textarea name="comment" placeholder="Write your comment..." required class="border p-2 w-full rounded"></textarea>
+    <button type="submit" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded w-full">
+      Post Comment
+    </button>
+  </form>
+<% } else if (user) { %>
+  <p class="text-gray-500 italic mt-2">Hosts cannot comment.</p>
+<% } else { %>
+  <p class="text-gray-500 italic mt-2">Login as a guest to comment.</p>
+<% } %>

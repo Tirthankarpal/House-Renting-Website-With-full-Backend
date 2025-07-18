@@ -5,7 +5,7 @@ const getAddHome=(req,res,next)=>{
 const postAddHome=(req,res,next)=>{
   console.log(req.body,req.body);
   const{houseName,Price,Location,Rating,PhotoUrl,Description}=req.body;
-  const home=new Home({houseName,Price,Location,Rating,PhotoUrl,Description});
+  const home=new Home({houseName,Price,Location,Rating,PhotoUrl,Description,review:[]});
   home.save().then(()=>{
     console.log("home saved");
   });
