@@ -32,14 +32,16 @@
       <% } %>
     </div>
     <!-- Right: Auth Buttons -->
-    <div>
+    <!-- Right: Profile and Auth Buttons -->
+    <div class="flex items-center space-x-4">
       <% if(!isLoggedIn){ %>
         <a
           href="/login"
           class="bg-white text-red-500 font-semibold py-2 px-6 rounded-lg shadow hover:bg-red-100 transition"
         >Login</a>
       <% } else { %>
-        <form action="/logout" method="POST">
+        <a href="/profile" class="py-2 px-4 rounded hover:bg-red-400 transition">Profile</a>
+        <form action="/logout" method="POST" class="inline">
           <button
             type="submit"
             class="bg-white text-red-500 font-semibold py-2 px-6 rounded-lg shadow hover:bg-red-100 transition"

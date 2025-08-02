@@ -1,0 +1,28 @@
+<%- include('../partials/head') %>
+<body class="bg-gray-50 min-h-screen">
+  <%- include('../partials/nav') %>
+  <main class="flex items-center justify-center min-h-[80vh]">
+    <section class="bg-white shadow-2xl rounded-xl p-10 w-full max-w-md">
+      <h2 class="text-3xl text-red-500 font-extrabold text-center mb-8 tracking-tight">Your Profile</h2>
+      <div class="space-y-4">
+        <div>
+          <span class="font-semibold text-gray-700">First Name:</span>
+          <span class="ml-2"><%= user.firstName %></span>
+        </div>
+        <div>
+          <span class="font-semibold text-gray-700">Last Name:</span>
+          <span class="ml-2"><%= user.lastName %></span>
+        </div>
+        <div>
+          <span class="font-semibold text-gray-700">Email:</span>
+          <span class="ml-2"><%= user.email %></span>
+        </div>
+        <div>
+          <span class="font-semibold text-gray-700">User Type:</span>
+          <span class="ml-2 capitalize"><%= user.userType %></span>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

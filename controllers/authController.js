@@ -115,3 +115,15 @@ exports.postSignup=[
         });
       });
 }]
+exports.getProfile = (req, res, next) => {
+  if (!req.session.isLoggedIn) {
+    return res.redirect('/login');
+  }
+  const user = req.session.user; // Get the user from the session
+  res.render('auth/profile', {
+    pageTitle: "Profile",
+    currentPage: "profile",
+    isLoggedIn: req.session.isLoggedIn,
+    user: user // Pass the user object to the view
+  });
+};
