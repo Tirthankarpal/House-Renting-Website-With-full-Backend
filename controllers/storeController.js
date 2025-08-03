@@ -13,9 +13,17 @@ exports.getIndex=(req,res,next)=>{
   res.render('store/index', { registeredHomes: homes || [], pageTitle: 'Wellcome to AirBnb', currentPage: 'Index', isLoggedIn: req.isLoggedIn, user: req.session.user });
 });
 };
-exports.getBookings=(req,res,next)=>{
-  res.render('store/bookings', { pageTitle: 'my bookings', currentPage: 'bookings', isLoggedIn: req.isLoggedIn, user: req.session.user });
+exports.getBookings = async (req, res, next) => {
+  const user = await User.findById(req.session.user._id).populate('bookings');
+  res.render('store/bookings', {
+    pageTitle: 'my bookings',
+    currentPage: 'bookings',
+    isLoggedIn: req.isLoggedIn,
+    user: req.session.user,
+    homes: user.bookings || []
+  });
 };
+
 exports.getHomeDetails=(req,res,next)=>{
   const homeId = req.params.id;
 
@@ -108,4 +116,24 @@ exports.postDeleteReview = async (req, res, next) => {
   });
   await Review.findByIdAndDelete(reviewId);
   res.redirect(`/homes/${homeId}`);
+};
+exports.postBook=async(req,res,next)=>{
+  const homeId=req.body.homeId;
+  const userId=req.body.userId;
+  const user=await User.findById(userId);
+  if(!user.bookings.includes(homeId)){
+    user.bookings.push(homeId);
+    await user.save();
+  }
+  res.redirect("/bookings");
+}
+exports.postDeleteBooking = async (req, res, next) => {
+  const homeId = req.body.homeId;
+  const userId = req.session.user._id;
+  const user = await User.findById(userId);
+  user.bookings = user.bookings.filter(
+    (bookingId) => bookingId.toString() !== homeId.toString()
+  );
+  await user.save();
+  res.redirect('/bookings');
 };

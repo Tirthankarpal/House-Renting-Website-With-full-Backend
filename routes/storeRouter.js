@@ -10,4 +10,7 @@ storeRouter.post("/favourites",storeController.postAddToFavourites);
 storeRouter.post("/favourites/delete/:id",storeController.postDeleteFromFavourites);
 storeRouter.post("/homes/:id/review", storeController.postReview);
 storeRouter.post("/homes/:homeId/review/:reviewId/delete", storeController.postDeleteReview);
+storeRouter.post("/store/bookings",storeController.postBook);
+storeRouter.post("/bookings/delete", storeController.postDeleteBooking);
 module.exports=storeRouter;
+

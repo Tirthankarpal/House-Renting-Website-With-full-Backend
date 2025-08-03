@@ -16,7 +16,13 @@
           <p class="text-gray-700 mb-1"><span class="font-semibold">Price:</span> <%= home.Price %></p>
           <p class="text-yellow-500 font-semibold mb-2"><span class="font-semibold">Rating:</span> <%= home.Rating %></p>
         </div>
-        <button class="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">Book Now</button>
+        <%if(user&&user.userType==='guest'){%>
+          <form action="/store/bookings" method="POST">
+          <input type="hidden" name="homeId" value="<%= home._id %>">
+          <input type="hidden" name="userId" value="<%= user._id %>">
+          <button type="submit" class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition duration-300">Book Now</button>
+        </form>
+        <%}%>
       </div>
     </li>
   <% }) %>
