@@ -1,26 +1,43 @@
 <%- include('../partials/head') %>
 <body class="bg-gray-50 min-h-screen">
   <%- include('../partials/nav') %>
-  <main class="flex items-center justify-center min-h-[80vh]">
-    <section class="bg-white shadow-2xl rounded-xl p-10 w-full max-w-md">
-      <h2 class="text-3xl text-red-500 font-extrabold text-center mb-8 tracking-tight">Your Profile</h2>
-      <div class="space-y-4">
-        <div>
-          <span class="font-semibold text-gray-700">First Name:</span>
-          <span class="ml-2"><%= user.firstName %></span>
+  <main class="max-w-3xl mx-auto py-12 px-4">
+    <section class="bg-white shadow-lg rounded-2xl p-8 flex flex-col md:flex-row items-center gap-8">
+      <div class="w-36 h-36 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-gray-200">
+        <img src="<%= user.avatarUrl ? user.avatarUrl : '/images/avatar-placeholder.png' %>" alt="Avatar" class="w-full h-full object-cover">
+      </div>
+
+      <div class="flex-1">
+        <h1 class="text-2xl font-extrabold text-gray-900 mb-1"><%= user.FirstName || user.firstName || 'First' %> <%= user.LastName || user.lastName || 'Last' %></h1>
+        <p class="text-sm text-gray-500 mb-4 capitalize"><%= user.userType || 'user' %></p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div class="bg-gray-50 p-4 rounded-lg text-center">
+            <p class="text-sm text-gray-500">Bookings</p>
+            <p class="text-lg font-semibold text-gray-900"><%= user.bookings ? user.bookings.length : 0 %></p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg text-center">
+            <p class="text-sm text-gray-500">Favourites</p>
+            <p class="text-lg font-semibold text-gray-900"><%= user.favourites ? user.favourites.length : 0 %></p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg text-center">
+            <p class="text-sm text-gray-500">Member Since</p>
+            <p class="text-lg font-semibold text-gray-900"><%= user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—' %></p>
+          </div>
         </div>
-        <div>
-          <span class="font-semibold text-gray-700">Last Name:</span>
-          <span class="ml-2"><%= user.lastName %></span>
+
+        <div class="flex flex-wrap gap-3">
+          <a href="/host/host-home" class="inline-block bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition font-semibold">My Homes</a>
+          <a href="/bookings" class="inline-block border border-red-500 text-red-500 px-4 py-2 rounded-lg hover:bg-red-50 transition">My Bookings</a>
+          <a href="/favourites" class="inline-block border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition">Favourites</a>
         </div>
-        <div>
-          <span class="font-semibold text-gray-700">Email:</span>
-          <span class="ml-2"><%= user.email %></span>
-        </div>
-        <div>
-          <span class="font-semibold text-gray-700">User Type:</span>
-          <span class="ml-2 capitalize"><%= user.userType %></span>
-        </div>
+      </div>
+
+      <div class="w-full md:w-auto flex md:flex-col items-center gap-3">
+        <a href="/profile/edit" class="inline-block bg-white border border-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:shadow transition">Edit Profile</a>
+        <form action="/logout" method="POST" class="inline">
+          <button type="submit" class="inline-block bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">Logout</button>
+        </form>
       </div>
     </section>
   </main>
