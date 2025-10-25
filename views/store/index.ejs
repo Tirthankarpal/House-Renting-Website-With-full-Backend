@@ -1,32 +1,63 @@
-<%-include('../partials/head')%>
-<body>
-  <%-include('../partials/nav')%>
-<main class="container mx-auto bg-white shadow-lg rounded-lg p-8 mt-10 max-w-xl">
-    <h2 class="text-3xl text-red-500 font-bold text-center mb-6">
-      Here is our index page:
-    </h2>
-    <ul class="space-y-8">
-  <% registeredHomes.forEach((home) => { %>
-    <li class="bg-white rounded-xl shadow-lg hover:shadow-2xl transition duration-300 flex flex-col md:flex-row overflow-hidden">
-      <img src="<%= home.PhotoUrl.startsWith('http') ? home.PhotoUrl : '/' + home.PhotoUrl %>"  alt="<%= home.houseName %> photo" class="w-full md:w-56 h-56 object-cover">
-      <div class="flex-1 p-6 flex flex-col justify-between">
-        <div>
-          <h3 class="text-2xl font-bold text-gray-900 mb-2"><%= home.houseName %></h3>
-          <p class="text-gray-700 mb-1"><span class="font-semibold">Location:</span> <%= home.Location %></p>
-          <p class="text-gray-700 mb-1"><span class="font-semibold">Price:</span> <%= home.Price %></p>
-          <p class="text-yellow-500 font-semibold mb-2"><span class="font-semibold">Rating:</span> <%= home.Rating %></p>
-        </div>
-        <%if(user&&user.userType==='guest'){%>
-          <form action="/store/bookings" method="POST">
-          <input type="hidden" name="homeId" value="<%= home._id %>">
-          <input type="hidden" name="userId" value="<%= user._id %>">
-          <button type="submit" class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition duration-300">Book Now</button>
-        </form>
-        <%}%>
-      </div>
-    </li>
-  <% }) %>
-</ul>
-</main>
+<%- include('../partials/head') %>
+<body class="bg-gradient-to-br from-gray-50 via-red-50 to-white min-h-screen">
+  <%- include('../partials/nav') %>
+
+  <main class="container mx-auto px-4 py-10">
+    <section class="bg-white shadow-xl rounded-2xl p-8 md:p-12 max-w-5xl mx-auto">
+      <h2 class="text-4xl font-extrabold text-red-600 text-center mb-10 drop-shadow-sm">
+        Explore Our Beautiful Homes 🏡
+      </h2>
+
+      <% if (registeredHomes && registeredHomes.length > 0) { %>
+        <ul class="grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
+          <% registeredHomes.forEach((home) => { %>
+            <li class="bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+              <img
+                src="<%= home.PhotoUrl.startsWith('http') ? home.PhotoUrl : '/' + home.PhotoUrl %>"
+                alt="<%= home.houseName %> photo"
+                class="w-full h-60 object-cover"
+              >
+              <div class="p-6 flex flex-col justify-between">
+                <div>
+                  <h3 class="text-2xl font-bold text-gray-800 mb-2">
+                    <%= home.houseName %>
+                  </h3>
+                  <p class="text-gray-700 mb-1">
+                    <span class="font-semibold text-gray-900">📍 Location:</span>
+                    <%= home.Location %>
+                  </p>
+                  <p class="text-gray-700 mb-1">
+                    <span class="font-semibold text-gray-900">💰 Price:</span>
+                    ₹<%= home.Price %>
+                  </p>
+                  <p class="text-yellow-500 font-semibold mb-3">
+                    <span class="font-semibold text-gray-900">⭐ Rating:</span>
+                    <%= home.Rating %>/5
+                  </p>
+                </div>
+
+                <% if (user && user.userType === 'guest') { %>
+                  <form action="/store/bookings" method="POST" class="mt-3">
+                    <input type="hidden" name="homeId" value="<%= home._id %>">
+                    <input type="hidden" name="userId" value="<%= user._id %>">
+                    <button
+                      type="submit"
+                      class="w-full bg-red-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-600 active:scale-95 transition-all duration-300"
+                    >
+                      Book Now
+                    </button>
+                  </form>
+                <% } %>
+              </div>
+            </li>
+          <% }) %>
+        </ul>
+      <% } else { %>
+        <p class="text-center text-gray-600 text-lg mt-8">
+          No homes available right now. Please check back soon!
+        </p>
+      <% } %>
+    </section>
+  </main>
 </body>
 </html>
