@@ -1,5 +1,6 @@
 const express=require('express');
 const path=require('path');
+const Razorpay = require('razorpay');
 const rootDir=require('./utils/pathUtil');
 const storeRouter=require('./routes/storeRouter');
 const hostRouter=require('./routes/hostRouter');
@@ -14,6 +15,10 @@ const db_path="mongodb+srv://tirthankarpal846:12345678910tprs@tirthankardb.971wm
 const store = new MongoDBStore({
   uri: db_path,
   collection: 'sessions'
+});
+const razorpay = new Razorpay({
+  key_id: 'rzp_test_Y2wy8t1wD1AFaA',
+  key_secret: 'zSqRMpIa2ljBBpkieFYGmfLa',
 });
 app.set('view engine','ejs');
 app.set('views','views');

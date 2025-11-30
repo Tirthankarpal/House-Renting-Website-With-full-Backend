@@ -37,6 +37,16 @@
             <span class="ml-2 text-lg"><%= home.Rating %> / 5</span>
           </div>
         </div>
+        <form action="/homes/payment/<%= home._id %>" method="POST">
+          <input type="hidden" name="homeId" value="<%= home._id %>" />
+          <input type="hidden" name="userId" value="<%= user._id %>" />
+          <button
+            type="submit"
+            class="w-full bg-red-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-600 active:bg-red-700 transition-all duration-300"
+          >
+            Payment
+          </button>
+        </form>
 
         <%- include('../partials/favourites') %>
       </div>
