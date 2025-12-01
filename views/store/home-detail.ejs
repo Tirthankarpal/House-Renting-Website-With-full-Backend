@@ -10,8 +10,8 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
       <div class="md:col-span-2 space-y-6">
         <div class="rounded-lg overflow-hidden">
-          <img src="<%= home.PhotoUrl.startsWith('http') ? home.PhotoUrl : '/' + home.PhotoUrl %>"
-               alt="<%= home.name %>"
+          <img src="<%= home.PhotoUrl && home.PhotoUrl.startsWith('http') ? home.PhotoUrl : '/' + home.PhotoUrl %>"
+               alt="<%= home.houseName %>"
                class="w-full h-96 object-cover">
         </div>
 
@@ -27,7 +27,7 @@
 
         <div class="border-b pb-4">
           <h3 class="text-2xl font-semibold mb-2">Price</h3>
-          <p class="text-green-600 text-xl font-bold">$<%= home.Price %> / night</p>
+          <p class="text-green-600 text-xl font-bold">₹<%= home.Price %> / night</p>
         </div>
 
         <div class="border-b pb-4">
@@ -38,12 +38,93 @@
           </div>
         </div>
 
+        <% if (user && user.userType === 'guest') { %>
+          <button
+            id="startPayment"
+            onclick="startCheckout('<%= home._id %>', '<%= home.Price %>')"
+            class="w-full bg-red-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-600 active:bg-red-700 transition-all duration-300"
+          >
+            Pay & Book
+          </button>
+        <% } else if (!user) { %>
+          <a href="/login" class="w-full inline-block text-center bg-red-500 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-600 transition-all duration-300">
+            Login to Book
+          </a>
+        <% } else { %>
+          <p class="text-sm text-gray-600">Hosts cannot book their own homes.</p>
+        <% } %>
+
         <%- include('../partials/favourites') %>
       </div>
+
       <aside class="space-y-4 border-l pl-4">
         <%- include('../partials/review') %>
       </aside>
     </div>
   </main>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    async function startCheckout(homeId, amount) {
+      try {
+        const numAmount = parseFloat(amount);
+        if (!numAmount || numAmount <= 0) {
+          alert('Invalid amount');
+          return;
+        }
+
+        const createResp = await fetch('/payment/create-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: numAmount, homeId: homeId })
+        });
+
+        if (!createResp.ok) {
+          throw new Error('Order creation failed');
+        }
+
+        const { order } = await createResp.json();
+
+        const options = {
+          key: '<%= razorpayKey %>',
+          amount: order.amount,
+          currency: order.currency,
+          name: 'House Renting',
+          description: 'Booking payment',
+          order_id: order.id,
+          handler: async function (razorpayResponse) {
+            const verifyResp = await fetch('/payment/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: razorpayResponse.razorpay_order_id,
+                razorpay_payment_id: razorpayResponse.razorpay_payment_id,
+                razorpay_signature: razorpayResponse.razorpay_signature,
+                homeId: homeId
+              })
+            });
+
+            const data = await verifyResp.json();
+            if (verifyResp.ok && data.success) {
+              window.location = data.redirect || '/bookings';
+            } else {
+              alert(data.error || 'Payment verification failed');
+            }
+          },
+          prefill: {
+            name: '<%= user ? (user.firstName + " " + user.lastName) : "" %>',
+            email: '<%= user ? user.email : "" %>'
+          },
+          theme: { color: '#ef4444' }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+      } catch (err) {
+        console.error(err);
+        alert('Payment initialization failed');
+      }
+    }
+  </script>
 </body>
 </html>

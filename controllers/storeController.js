@@ -40,7 +40,8 @@ exports.getHomeDetails=(req,res,next)=>{
         pageTitle: 'Home Detail',
         currentPage: 'home-detail',
         isLoggedIn: req.isLoggedIn,
-        user: req.session.user
+        user: req.session.user,
+        razorpayKey: process.env.RAZORPAY_ID_KEY || 'rzp_test_Y2wy8t1wD1AFaA'
       });
     })
     .catch(err => console.log(err));
@@ -136,4 +137,19 @@ exports.postDeleteBooking = async (req, res, next) => {
   );
   await user.save();
   res.redirect('/bookings');
+};
+exports.postPayment = async (req, res, next) => {
+  const homeId = req.params.id;
+  const userId = req.body.userId;
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).send('User not found');
+  }
+  
+  // Add booking if not already booked
+  if (!user.bookings.includes(homeId)) {
+    user.bookings.push(homeId);
+    await user.save();
+  }
+  res.redirect("/bookings");
 };

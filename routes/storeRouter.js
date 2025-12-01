@@ -12,5 +12,6 @@ storeRouter.post("/homes/:id/review", storeController.postReview);
 storeRouter.post("/homes/:homeId/review/:reviewId/delete", storeController.postDeleteReview);
 storeRouter.post("/store/bookings",storeController.postBook);
 storeRouter.post("/bookings/delete", storeController.postDeleteBooking);
+storeRouter.post("/homes/payment/:id", storeController.postPayment);
 module.exports=storeRouter;
 
