@@ -40,7 +40,8 @@ exports.getHomeDetails=(req,res,next)=>{
         pageTitle: 'Home Detail',
         currentPage: 'home-detail',
         isLoggedIn: req.isLoggedIn,
-        user: req.session.user
+        user: req.session.user,
+        razorpayKey: process.env.RAZORPAY_ID_KEY || 'rzp_test_Y2wy8t1wD1AFaA'
       });
     })
     .catch(err => console.log(err));
