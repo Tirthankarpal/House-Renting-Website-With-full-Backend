@@ -1,155 +1,179 @@
-const Home=require('../models/homes');
-const User=require('../models/user');
-const Review=require('../models/review');
-exports.getHome=(req,res,next)=>{
-  Home.find().then((homes) => {
-  res.render('store/home', { registeredHomes: homes || [], pageTitle: 'Wellcome to AirBnb', currentPage: 'home', isLoggedIn: req.isLoggedIn, user: req.session.user });
-});
+const Home = require('../models/homes');
+const User = require('../models/user');
+const Review = require('../models/review');
+
+exports.getHome = async (req, res, next) => {
+  try {
+    const homes = await Home.find();
+    res.status(200).json({ registeredHomes: homes || [] });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch homes" });
+  }
 };
-exports.getIndex=(req,res,next)=>{
-  console.log("Session Value",req.session);
-  Home.find().then((homes) => {
-  console.log(homes);
-  res.render('store/index', { registeredHomes: homes || [], pageTitle: 'Wellcome to AirBnb', currentPage: 'Index', isLoggedIn: req.isLoggedIn, user: req.session.user });
-});
+
+exports.getIndex = async (req, res, next) => {
+  try {
+    const homes = await Home.find();
+    res.status(200).json({ registeredHomes: homes || [] });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch homes" });
+  }
 };
+
 exports.getBookings = async (req, res, next) => {
-  const user = await User.findById(req.session.user._id).populate('bookings');
-  res.render('store/bookings', {
-    pageTitle: 'my bookings',
-    currentPage: 'bookings',
-    isLoggedIn: req.isLoggedIn,
-    user: req.session.user,
-    homes: user.bookings || []
-  });
+  try {
+    if (!req.session.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const user = await User.findById(req.session.user._id).populate('bookings');
+    res.status(200).json({ bookings: user.bookings || [] });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch bookings" });
+  }
 };
 
-exports.getHomeDetails=(req,res,next)=>{
-  const homeId = req.params.id;
-
-  Home.findById(homeId)
-    .populate({
+exports.getHomeDetails = async (req, res, next) => {
+  try {
+    const homeId = req.params.id;
+    const home = await Home.findById(homeId).populate({
       path: 'reviews',
       populate: { path: 'user', select: 'firstName userType' }
-    })
-    .then((home) => {
-      if (!home) return res.redirect('/homes');
-
-      res.render('store/home-detail', {
-        home,
-        pageTitle: 'Home Detail',
-        currentPage: 'home-detail',
-        isLoggedIn: req.isLoggedIn,
-        user: req.session.user,
-        razorpayKey: process.env.RAZORPAY_ID_KEY || 'rzp_test_Y2wy8t1wD1AFaA'
-      });
-    })
-    .catch(err => console.log(err));
-};
-exports.postAddToFavourites=async (req,res,next)=>{
-  console.log("came to add to favourites",req.body);
-  const homeId=req.body.id;
-  const userId=req.session.user._id;
-  const user=await User.findById(userId);
-  if(!user.favourites.includes(homeId)){
-    user.favourites.push(homeId);
-    await user.save();
-    console.log("home added to favourites",user.favourites);
+    });
+    if (!home) {
+      return res.status(404).json({ error: "Home not found" });
+    }
+    res.status(200).json({ 
+      home,
+      razorpayKey: process.env.RAZORPAY_ID_KEY || 'rzp_test_Y2wy8t1wD1AFaA'
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch home details" });
   }
-  res.redirect('/favourites');
+};
+
+exports.postAddToFavourites = async (req, res, next) => {
+  try {
+    const homeId = req.body.id;
+    const userId = req.session.user?._id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const user = await User.findById(userId);
+    if (!user.favourites.includes(homeId)) {
+      user.favourites.push(homeId);
+      await user.save();
+    }
+    res.status(200).json({ message: "Added to favourites", favourites: user.favourites });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to add to favourites" });
+  }
 };
 
 exports.getFavouriteList = async (req, res, next) => {
-  const userId=req.session.user._id;
-  const user=await User.findById(userId).populate('favourites');
-  res.render('store/favourite-list', { favHomes: user.favourites || [], pageTitle: 'Favourites', currentPage: 'favourites', isLoggedIn: req.isLoggedIn, user: req.session.user });
-};
-exports.postDeleteFromFavourites=async(req,res,next)=>{
-  console.log("came to delete from favourites",req.params.id);
-  const homeId=req.params.id;
-  const userId=req.session.user._id;
-  const user=await User.findById(userId);
-  if(user.favourites.includes(homeId)){
-    user.favourites=user.favourites.filter((favId)=>favId.toString()!==homeId.toString());
-    await user.save();
-    console.log("home removed from favourites",user.favourites);
+  try {
+    const userId = req.session.user?._id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    const user = await User.findById(userId).populate('favourites');
+    res.status(200).json({ favHomes: user.favourites || [] });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch favourites" });
   }
-  res.redirect('/favourites');
 };
+
+exports.postDeleteFromFavourites = async (req, res, next) => {
+  try {
+    const homeId = req.params.id;
+    const userId = req.session.user?._id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+    const user = await User.findById(userId);
+    if (user.favourites.includes(homeId)) {
+      user.favourites = user.favourites.filter((favId) => favId.toString() !== homeId.toString());
+      await user.save();
+    }
+    res.status(200).json({ message: "Removed from favourites" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to remove from favourites" });
+  }
+};
+
 exports.postReview = async (req, res, next) => {
-  const user = req.session.user;
-  const homeId = req.params.id;
-  const { comment } = req.body;
-  if (!user || user.userType !== 'guest') {
-    return res.status(403).send('Only guests can write reviews.');
+  try {
+    const user = req.session.user;
+    const homeId = req.params.id;
+    const { comment } = req.body;
+    
+    if (!user || user.userType !== 'guest') {
+      return res.status(403).json({ error: "Only guests can write reviews." });
+    }
+    if (!comment || !comment.trim()) {
+      return res.status(400).json({ error: "Comment cannot be empty." });
+    }
+
+    const review = await Review.create({
+      comment: comment.trim(),
+      home: homeId,
+      user: user._id,
+      username: user.firstName
+    });
+    
+    await Home.findByIdAndUpdate(homeId, { $push: { reviews: review._id } });
+    res.status(201).json({ message: "Review added", review });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to add review" });
   }
-  if (!comment || !comment.trim()) {
-    return res.redirect(`/homes/${homeId}`);
-  }
-  const Review = require('../models/review');
-  const review = await Review.create({
-    comment: comment.trim(),
-    home: homeId,
-    user: user._id,
-    username: user.firstName
-  });
-  await Home.findByIdAndUpdate(homeId, {
-    $push: { reviews: review._id }
-  });
-  res.redirect(`/homes/${homeId}`);
 };
+
 exports.postDeleteReview = async (req, res, next) => {
-  const user = req.session.user;
-  const { homeId, reviewId } = req.params;
-  if (!user || user.userType !== 'guest') {
-    return res.status(403).send('Not allowed.');
+  try {
+    const user = req.session.user;
+    const { homeId, reviewId } = req.params;
+    
+    if (!user || user.userType !== 'guest') {
+      return res.status(403).json({ error: "Not allowed." });
+    }
+
+    const review = await Review.findById(reviewId);
+    if (!review) return res.status(404).json({ error: "Review not found." });
+    
+    if (review.user.toString() !== user._id.toString()) {
+      return res.status(403).json({ error: "You can only delete your own reviews." });
+    }
+
+    await Home.findByIdAndUpdate(homeId, { $pull: { reviews: review._id } });
+    await Review.findByIdAndDelete(reviewId);
+    res.status(200).json({ message: "Review deleted" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete review" });
   }
-  const Review = require('../models/review');
-  const review = await Review.findById(reviewId);
-  if (!review) {
-    return res.status(404).send('Review not found.');
-  }
-  if (review.user.toString() !== user._id.toString()) {
-    return res.status(403).send('You can only delete your own reviews.');
-  }
-  await Home.findByIdAndUpdate(homeId, {
-    $pull: { reviews: review._id }
-  });
-  await Review.findByIdAndDelete(reviewId);
-  res.redirect(`/homes/${homeId}`);
 };
-exports.postBook=async(req,res,next)=>{
-  const homeId=req.body.homeId;
-  const userId=req.body.userId;
-  const user=await User.findById(userId);
-  if(!user.bookings.includes(homeId)){
-    user.bookings.push(homeId);
-    await user.save();
+
+exports.postBook = async (req, res, next) => {
+  try {
+    const homeId = req.body.homeId;
+    const userId = req.session.user?._id || req.body.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const user = await User.findById(userId);
+    if (!user.bookings.includes(homeId)) {
+      user.bookings.push(homeId);
+      await user.save();
+    }
+    res.status(200).json({ message: "Booked successfully" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to book home" });
   }
-  res.redirect("/bookings");
-}
+};
+
 exports.postDeleteBooking = async (req, res, next) => {
-  const homeId = req.body.homeId;
-  const userId = req.session.user._id;
-  const user = await User.findById(userId);
-  user.bookings = user.bookings.filter(
-    (bookingId) => bookingId.toString() !== homeId.toString()
-  );
-  await user.save();
-  res.redirect('/bookings');
-};
-exports.postPayment = async (req, res, next) => {
-  const homeId = req.params.id;
-  const userId = req.body.userId;
-  const user = await User.findById(userId);
-  if (!user) {
-    return res.status(404).send('User not found');
-  }
-  
-  // Add booking if not already booked
-  if (!user.bookings.includes(homeId)) {
-    user.bookings.push(homeId);
+  try {
+    const homeId = req.body.homeId || req.params.id;
+    const userId = req.session.user?._id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const user = await User.findById(userId);
+    user.bookings = user.bookings.filter(b => b.toString() !== homeId.toString());
     await user.save();
+    res.status(200).json({ message: "Booking cancelled" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to cancel booking" });
   }
-  res.redirect("/bookings");
 };

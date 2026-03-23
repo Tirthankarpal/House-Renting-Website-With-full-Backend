@@ -1,58 +1,65 @@
-const Home=require('../models/homes');
-const getAddHome=(req,res,next)=>{
-  res.render('host/edit-home',{pageTitle:"Add Home",currentPage:"addhome",editing:false,isLoggedIn:req.isLoggedIn,user:req.session.user});
-}
-const postAddHome=(req,res,next)=>{
-  console.log(req.body,req.body);
-  const{houseName,Price,Location,Rating,PhotoUrl,Description}=req.body;
-  const home=new Home({houseName,Price,Location,Rating,PhotoUrl,Description,review:[]});
-  home.save().then(()=>{
-    console.log("home saved");
-  });
-  res.render('host/homeAddSuccess',{pageTitle:"Home Added Successfully",currentPage:"home",isLoggedIn:req.isLoggedIn,user:req.session.user});
-}
-exports.getHostHomes=(req,res,next)=>{
-  Home.find().then((homes) => {
-    console.log(homes);
-    res.render('host/host-home', { registeredHomes: homes || [], pageTitle: 'Wellcome to AirBnb', currentPage: 'host-home', isLoggedIn: req.isLoggedIn, user: req.session.user });
-  });
-}
-exports.getEditHome=(req,res,next)=>{
-  const homeId=req.params.id;
-  const editing=req.query.editing === 'true';
-  console.log(homeId,editing);
-  Home.findById(homeId.toString()).then((home)=>{
-    if(!home){
-      console.log("home not found");
-      return res.redirect('/host/host-home');
+const Home = require('../models/homes');
+
+exports.postAddHome = async (req, res, next) => {
+  try {
+    const { houseName, Price, Location, Rating, PhotoUrl, Description } = req.body;
+    const home = new Home({ houseName, Price, Location, Rating, PhotoUrl, Description, review: [] });
+    await home.save();
+    res.status(201).json({ message: "Home added successfully", home });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to add home", details: err });
+  }
+};
+
+exports.getHostHomes = async (req, res, next) => {
+  try {
+    // Usually we would filter by host ID, but keeping existing logic here
+    const homes = await Home.find();
+    res.status(200).json({ registeredHomes: homes || [] });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch homes" });
+  }
+};
+
+exports.getEditHome = async (req, res, next) => {
+  try {
+    const homeId = req.params.id;
+    const home = await Home.findById(homeId);
+    if (!home) {
+      return res.status(404).json({ error: "Home not found" });
     }
-    else{
-      console.log("home details found",home);
-      res.render('host/edit-Home', {home:home, pageTitle: 'Edit Your Home', currentPage: 'host-home',editing:editing, isLoggedIn: req.isLoggedIn, user: req.session.user });
+    res.status(200).json({ home });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch home details" });
+  }
+};
+
+exports.postEditHome = async (req, res, next) => {
+  try {
+    const { _id, houseName, Price, Location, Rating, PhotoUrl, Description } = req.body;
+    const home = await Home.findById(_id || req.params.id);
+    if (!home) {
+      return res.status(404).json({ error: "Home not found" });
     }
-  })
-}
-exports.postEditHome=(req,res,next)=>{
-  const{_id,houseName,Price,Location,Rating,PhotoUrl,Description}=req.body;
-  Home.findById(_id).then((home)=>{
-    home.houseName=houseName;
-    home.Price=Price;
-    home.Location=Location;
-    home.Rating=Rating;
-    home.PhotoUrl=PhotoUrl;
-    home.Description=Description;
-    home.save().then(()=>{
-      console.log("home updated");
-    }).catch(err=>{console.log(err);});
-  }).catch(err=>{console.log("Error while finding home",err);});
-  res.redirect('/host/host-home');
-}
-exports.postDeleteHome=(req,res,next)=>{
-  const homeId=req.params.id;
-  console.log("came to delete home",homeId);
-  Home.findByIdAndDelete(homeId).then((result)=>{
-    res.redirect('/host/host-home');
-  }).catch(err=>{console.log("Error while deleting home",err);});
-}
-exports.getAddHome=getAddHome;
-exports.postAddHome=postAddHome;
+    home.houseName = houseName;
+    home.Price = Price;
+    home.Location = Location;
+    home.Rating = Rating;
+    home.PhotoUrl = PhotoUrl;
+    home.Description = Description;
+    await home.save();
+    res.status(200).json({ message: "Home updated successfully", home });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update home" });
+  }
+};
+
+exports.postDeleteHome = async (req, res, next) => {
+  try {
+    const homeId = req.params.id;
+    await Home.findByIdAndDelete(homeId);
+    res.status(200).json({ message: "Home deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete home" });
+  }
+};

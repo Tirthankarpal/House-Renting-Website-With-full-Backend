@@ -1,4 +1,5 @@
-const errorPage=(req,res,next)=>{
-  res.status(404).render('404',{pageTitle:"Page Not Found", currentPage:"404",isLoggedIn:req.isLoggedIn,user:req.session.user});
-}
-exports.errorPage=errorPage;
+const errorPage = (req, res, next) => {
+  res.status(404).json({ error: 'Endpoint Not Found', details: `Check the URL: ${req.url}` });
+};
+
+exports.errorPage = errorPage;

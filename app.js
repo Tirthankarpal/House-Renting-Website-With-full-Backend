@@ -26,8 +26,11 @@ const razorpayInstance = new Razorpay({
   key_secret: process.env.RAZORPAY_SECRET_KEY || 'zSqRMpIa2ljBBpkieFYGmfLa',
 });
 
-app.set('view engine', 'ejs');
-app.set('views', 'views');
+const cors = require('cors');
+app.use(cors({
+  origin: 'http://localhost:5173', // Vite default port
+  credentials: true
+}));
 app.use(express.static(path.join(rootDir, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());

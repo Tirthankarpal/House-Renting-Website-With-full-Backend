@@ -16,7 +16,7 @@ module.exports = function createPaymentController({ razorpay, User, razorpaySecr
 
       const order = await razorpay.orders.create(options);
       req.session.razorpayOrder = { id: order.id, homeId, amount };
-      return res.json({ order });
+      return res.status(200).json({ order });
     } catch (err) {
       console.error('createOrder error', err);
       return res.status(500).json({ error: 'Unable to create order' });
@@ -39,34 +39,24 @@ module.exports = function createPaymentController({ razorpay, User, razorpaySecr
         return res.status(400).json({ error: 'Invalid signature' });
       }
 
-      const userId = req.session && req.session.user && req.session.user._id ? req.session.user._id : null;
-      const targetHomeId = homeId || (req.session.razorpayOrder && req.session.razorpayOrder.homeId);
+      const userId = req.session?.user?._id;
+      const targetHomeId = homeId || req.session.razorpayOrder?.homeId;
 
-      if (!userId) {
-        return res.status(401).json({ error: 'User not authenticated' });
-      }
-      if (!targetHomeId) {
-        return res.status(400).json({ error: 'homeId not provided' });
-      }
+      if (!userId) return res.status(401).json({ error: 'User not authenticated' });
+      if (!targetHomeId) return res.status(400).json({ error: 'homeId not provided' });
 
       const user = await User.findById(userId);
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
+      if (!user) return res.status(404).json({ error: 'User not found' });
 
-      if (!Array.isArray(user.bookings)) {
-        user.bookings = [];
-      }
-      const already = user.bookings.map(id => id.toString()).includes(targetHomeId.toString());
+      if (!Array.isArray(user.bookings)) user.bookings = [];
+      const already = user.bookings.some(id => id.toString() === targetHomeId.toString());
       if (!already) {
         user.bookings.push(targetHomeId);
         await user.save();
-        if (req.session.user) {
-          req.session.user.bookings = user.bookings;
-        }
+        if (req.session.user) req.session.user.bookings = user.bookings;
       }
 
-      return res.json({ success: true, redirect: '/bookings' });
+      return res.status(200).json({ success: true, message: 'Payment verified and booking confirmed' });
     } catch (err) {
       console.error('verifyPayment error', err);
       return res.status(500).json({ error: 'Payment verification failed' });
@@ -75,33 +65,27 @@ module.exports = function createPaymentController({ razorpay, User, razorpaySecr
 
   const postPayment = async (req, res, next) => {
     try {
-      const homeId = req.body.homeId || (req.session.razorpayOrder && req.session.razorpayOrder.homeId);
-      const userId = req.session && req.session.user && req.session.user._id ? req.session.user._id : null;
-      if (!userId || !homeId) {
-        return res.status(400).send('Missing user or home information');
-      }
+      const homeId = req.body.homeId || req.session.razorpayOrder?.homeId;
+      const userId = req.session?.user?._id;
+      
+      if (!userId || !homeId) return res.status(400).json({ error: 'Missing user or home information' });
 
       const user = await User.findById(userId);
-      if (!user) {
-        return res.status(404).send('User not found');
-      }
+      if (!user) return res.status(404).json({ error: 'User not found' });
 
-      if (!Array.isArray(user.bookings)) {
-        user.bookings = [];
-      }
-      const already = user.bookings.map(id => id.toString()).includes(homeId.toString());
+      if (!Array.isArray(user.bookings)) user.bookings = [];
+      
+      const already = user.bookings.some(id => id.toString() === homeId.toString());
       if (!already) {
         user.bookings.push(homeId);
         await user.save();
-        if (req.session.user) {
-          req.session.user.bookings = user.bookings;
-        }
+        if (req.session.user) req.session.user.bookings = user.bookings;
       }
 
-      return res.redirect('/bookings');
+      return res.status(200).json({ message: 'Payment processed' });
     } catch (err) {
       console.error('postPayment error', err);
-      return res.status(500).send('Internal Server Error');
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
   };
 
